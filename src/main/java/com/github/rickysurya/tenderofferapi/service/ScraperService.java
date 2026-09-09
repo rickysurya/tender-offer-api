@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class Scraper {
+public class ScraperService {
     private final String disclosureUrl = "https://idx.co.id/en/listed-companies/disclosure/";
     private final String fetchTickerUrl = "https://www.idx.co.id/en/market-data/trading-summary/stock-summary/";
     private final String filterSearchMto = "/refloat";
@@ -52,8 +52,8 @@ public class Scraper {
         return results;
     }
 
-    public Map<String, Object> getTickerLastPrice(String ticker) {
-        Map<String, Object> results = new HashMap<>();
+    public String getTickerLastPrice(String ticker) {
+        String results = "";
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.firefox().launch();
             Page page = browser.newPage();
@@ -77,8 +77,7 @@ public class Scraper {
                 browser.close();
                 return results;
             }
-            String lastClosePrice = rows.first().locator("td.vgt-right-align").nth(2).innerText().trim();
-            results.put("lastClosePrice", lastClosePrice);
+            results = rows.first().locator("td.vgt-right-align").nth(2).innerText().trim();
             browser.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
