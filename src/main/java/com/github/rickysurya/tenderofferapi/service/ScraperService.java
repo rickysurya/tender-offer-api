@@ -4,9 +4,6 @@ import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.LoadState;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -55,7 +52,7 @@ public class Scraper {
         return results;
     }
 
-    public Map<String, Object> getTickers(String ticker) {
+    public Map<String, Object> getTickerLastPrice(String ticker) {
         Map<String, Object> results = new HashMap<>();
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.firefox().launch();
