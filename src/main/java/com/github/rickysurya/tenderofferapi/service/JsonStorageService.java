@@ -1,5 +1,6 @@
 package com.github.rickysurya.tenderofferapi.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -20,19 +21,36 @@ public class JsonStorageService {
     private final File file = new File("data/content.json");
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-    public void insertTickerData(String ticker) {
-        Map<String, Map<String, String>> rootData = readJsonFile();
-        String lastClosePrice = scraperService.getTickerLastPrice(ticker);
+    public void insertTickerData(JsonNode extracted) {
+        String ticker = extracted.path("ticker").asText(null);
+        System.out.println("Ticker: " + ticker);
+        if (ticker == null) {
+            System.out.println("extracted ticker" + ticker);
+            return;
 
+        }
+
+        Map<String, Map<String, String>> rootData = readJsonFile();
         Map<String, String> tickerDetails = rootData.getOrDefault(ticker, new HashMap<>());
-        tickerDetails.putIfAbsent("periodStart", "");
-        tickerDetails.putIfAbsent("periodEnd", "");
-        tickerDetails.putIfAbsent("tenderOffer", "");
-        tickerDetails.put("lastClosePrice", lastClosePrice);
-        tickerDetails.putIfAbsent("cagr", "");
+
+        putIfPresent(tickerDetails, "periodStart", extracted);
+        putIfPresent(tickerDetails, "periodEnd", extracted);
+        putIfPresent(tickerDetails, "periodDurationDays", extracted);
+        putIfPresent(tickerDetails, "offerPricePerShare", extracted);
+        putIfPresent(tickerDetails, "announcementType", extracted);
+
+        tickerDetails.put("lastClosePrice", scraperService.getTickerLastPrice(ticker));
 
         rootData.put(ticker, tickerDetails);
+        System.out.println("saving ticker to json" + ticker);
         writeJsonFile(rootData);
+    }
+
+    private void putIfPresent(Map<String, String> details, String field, JsonNode extracted) {
+        JsonNode value = extracted.path(field);
+        if (!value.isNull() && !value.isMissingNode()) {
+            details.put(field, value.asText());
+        }
     }
 
     public void updateTickerData(String ticker) {
@@ -50,7 +68,8 @@ public class JsonStorageService {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(file, new TypeReference<>() {});
+            return objectMapper.readValue(file, new TypeReference<>() {
+            });
         } catch (IOException e) {
             throw new RuntimeException("Failed to read " + file.getPath(), e);
         }
