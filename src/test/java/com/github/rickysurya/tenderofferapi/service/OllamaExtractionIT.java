@@ -24,6 +24,7 @@ public class OllamaExtractionIT {
     void extractsKnownFieldsFromRealDisclosure() throws IOException {
         Path fixtureDir = Path.of("src/test/resources/fixtures/mto-2026-05-11");
 
+//        List<byte[]> pdfs = List.of(readBytes(fixtureDir.resolve("doc2.pdf")));
         List<byte[]> pdfs;
         try (Stream<Path> files = Files.list(fixtureDir)) {
             pdfs = files.sorted().map(this::readBytes).toList();

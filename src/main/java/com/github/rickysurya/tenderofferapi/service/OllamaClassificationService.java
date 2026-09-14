@@ -59,7 +59,8 @@ public class OllamaClassificationService {
                 "prompt", PROMPT_TEMPLATE.formatted(numbered),
                 "stream", false,
                 "format", JSON_SCHEMA,
-                "options", Map.of("temperature", 0.0)
+                "options", Map.of(
+                        "temperature", 0.0)
         );
 
         String response = restClient.post()

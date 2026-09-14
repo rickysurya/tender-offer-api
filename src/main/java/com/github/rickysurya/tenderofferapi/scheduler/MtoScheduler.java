@@ -1,6 +1,7 @@
 package com.github.rickysurya.tenderofferapi.scheduler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.rickysurya.tenderofferapi.service.JsonStorageService;
 import com.github.rickysurya.tenderofferapi.service.OllamaExtractionService;
 import com.github.rickysurya.tenderofferapi.service.ScraperService;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class MtoScheduler {
@@ -21,6 +24,8 @@ public class MtoScheduler {
 
     @Autowired
     private JsonStorageService jsonStorageService;
+
+    private static final Pattern TICKER_PATTERN = Pattern.compile("\\[([A-Z]{4})\\s*]");
 
     @Scheduled(cron = "0 0 21 * * *", zone = "Asia/Jakarta")
     public void runDailyCheck() {
@@ -34,9 +39,18 @@ public class MtoScheduler {
         for (var announcement : announcements) {
             if (announcement.pdfBytesList().isEmpty()) continue;
             JsonNode extracted = ollamaExtractionService.extract(announcement.pdfBytesList());
+
+            String tickerFromTitle = extractTickerFromTitle(announcement.title());
+            if (tickerFromTitle != null && extracted instanceof ObjectNode obj) {
+                obj.put("ticker", tickerFromTitle);
+            }
             jsonStorageService.insertTickerData(extracted);
             processed++;
         }
         return processed;
+    }
+    private String extractTickerFromTitle(String title) {
+        Matcher m = TICKER_PATTERN.matcher(title);
+        return m.find() ? m.group(1) : null;
     }
 }
