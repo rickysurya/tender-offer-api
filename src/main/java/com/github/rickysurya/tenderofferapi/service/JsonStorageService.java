@@ -32,15 +32,20 @@ public class JsonStorageService {
 
         Map<String, Map<String, String>> rootData = readJsonFile();
         Map<String, String> tickerDetails = rootData.getOrDefault(ticker, new HashMap<>());
-
-        putIfPresent(tickerDetails, "periodStart", extracted);
-        putIfPresent(tickerDetails, "periodEnd", extracted);
-        putIfPresent(tickerDetails, "periodDurationDays", extracted);
+        if ("TENDER_OFFER_SCHEDULE".equals(extracted.path("announcementType").asText())) {
+            putIfPresent(tickerDetails, "periodStart", extracted);
+            putIfPresent(tickerDetails, "periodEnd", extracted);
+            putIfPresent(tickerDetails, "periodDurationDays", extracted);
+        }
         putIfPresent(tickerDetails, "offerPricePerShare", extracted);
         putIfPresent(tickerDetails, "announcementType", extracted);
 
-        tickerDetails.put("lastClosePrice", scraperService.getTickerLastPrice(ticker));
-
+        try {
+            tickerDetails.put("lastClosePrice", scraperService.getTickerLastPrice(ticker));
+        } catch (Exception e) {
+            System.out.println("Price fetch failed for " + ticker + ", saving disclosure data without it: " + e.getMessage());
+        }
+        tickerDetails.put("lastUpdated", java.time.Instant.now().toString());
         rootData.put(ticker, tickerDetails);
         System.out.println("saving ticker to json" + ticker);
         writeJsonFile(rootData);
@@ -80,9 +85,23 @@ public class JsonStorageService {
             if (file.getParentFile() != null && !file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
+            System.out.println("Writing content.json to: " + file.getAbsolutePath());
             objectMapper.writeValue(file, data);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write to " + file.getPath(), e);
         }
+    }
+
+    public void refreshAllPrices() {
+        Map<String, Map<String, String>> rootData = readJsonFile();
+        for (var entry : rootData.entrySet()) {
+            try {
+                entry.getValue().put("lastClosePrice", scraperService.getTickerLastPrice(entry.getKey()));
+                entry.getValue().put("lastUpdated", java.time.Instant.now().toString());
+            } catch (Exception e) {
+                System.out.println("Price refresh failed for " + entry.getKey() + ": " + e.getMessage());
+            }
+        }
+        writeJsonFile(rootData);
     }
 }

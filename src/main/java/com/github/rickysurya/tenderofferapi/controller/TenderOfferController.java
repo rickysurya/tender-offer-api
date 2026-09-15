@@ -18,7 +18,7 @@ public class TenderOfferController {
     private TenderOfferService tenderOfferService;
 
     @GetMapping
-    public List<Map<String, Object>> list(@RequestParam(required = false) String status) {
-        return tenderOfferService.findAll(status);
+    public List<Map<String, Object>> list() {
+        return tenderOfferService.findAll();
     }
 }

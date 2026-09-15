@@ -16,36 +16,37 @@ public class TenderOfferService {
     private final File file = new File("data/content.json");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<Map<String, Object>> findAll(String statusFilter) {
+    public List<Map<String, Object>> findAll() {
         Map<String, Map<String, String>> rawData = readJsonFile();
         List<Map<String, Object>> results = new ArrayList<>();
 
         for (var entry : rawData.entrySet()) {
             Map<String, String> fields = entry.getValue();
-            String status = computeStatus(fields.get("periodEnd"));
-            if (statusFilter != null && !statusFilter.equalsIgnoreCase(status)) continue;
+//            String status = computeStatus(fields.get("periodEnd"));
+//            if (statusFilter != null && !statusFilter.equalsIgnoreCase(status)) continue;
 
             Map<String, Object> view = new LinkedHashMap<>();
             view.put("ticker", entry.getKey());
-            view.put("periodStart", fields.get("periodStart"));
-            view.put("periodEnd", fields.get("periodEnd"));
+//            view.put("periodStart", fields.get("periodStart"));
+//            view.put("periodEnd", fields.get("periodEnd"));
             view.put("offerPricePerShare", parseNumberOrNull(fields.get("offerPricePerShare")));
             view.put("lastClosePrice", parseNumberOrNull(fields.get("lastClosePrice")));
             view.put("announcementType", fields.get("announcementType"));
-            view.put("status", status);
+            view.put("lastUpdated", fields.get("lastUpdated"));
+//            view.put("status", status);
             results.add(view);
         }
         return results;
     }
 
-    private String computeStatus(String periodEndStr) {
-        if (periodEndStr == null || periodEndStr.isBlank()) return "UNKNOWN";
-        try {
-            return LocalDate.now().isAfter(LocalDate.parse(periodEndStr)) ? "CLOSED" : "OPEN";
-        } catch (Exception e) {
-            return "UNKNOWN";
-        }
-    }
+//    private String computeStatus(String periodEndStr) {
+//        if (periodEndStr == null || periodEndStr.isBlank()) return "UNKNOWN";
+//        try {
+//            return LocalDate.now().isAfter(LocalDate.parse(periodEndStr)) ? "CLOSED" : "OPEN";
+//        } catch (Exception e) {
+//            return "UNKNOWN";
+//        }
+//    }
 
     private BigDecimal parseNumberOrNull(String value) {
         if (value == null || value.isBlank()) return null;

@@ -31,6 +31,7 @@ public class MtoScheduler {
     public void runDailyCheck() {
         LocalDate today = LocalDate.now();
         processDateRange(today, today);
+        jsonStorageService.refreshAllPrices();
     }
 
     public int processDateRange(LocalDate from, LocalDate to) {

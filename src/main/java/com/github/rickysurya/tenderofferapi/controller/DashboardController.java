@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -33,7 +34,7 @@ public class DashboardController {
     @GetMapping("/fetch")
     public Map<String, Integer> testScraper(
             @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to) {
+            @RequestParam(required = false) String to)  {
         LocalDate f = from != null ? LocalDate.parse(from) : LocalDate.now();
         LocalDate t = to != null ? LocalDate.parse(to) : LocalDate.now();
         List<ScraperService.ScrapedAnnouncement> result = scraperService.checkMTO(f,t);

@@ -6,7 +6,9 @@ import com.microsoft.playwright.options.LoadState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -37,7 +39,7 @@ public class ScraperService {
         page.keyboard().press("Enter");
     }
 
-    public List<ScrapedAnnouncement> checkMTO(LocalDate from, LocalDate to) {
+        public List<ScrapedAnnouncement> checkMTO(LocalDate from, LocalDate to) {
         Map<String, Object> firefoxPrefs = new HashMap<>();
         firefoxPrefs.put("pdfjs.disabled", true);
         firefoxPrefs.put("browser.download.folderList", 2);
@@ -46,7 +48,7 @@ public class ScraperService {
         firefoxPrefs.put("browser.download.manager.showWhenStarting", false);
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.firefox().launch(
-                    new BrowserType.LaunchOptions().setHeadless(false).setFirefoxUserPrefs(firefoxPrefs)
+                    new BrowserType.LaunchOptions()
             );
             Page page = browser.newPage();
             page.navigate(disclosureUrl);
@@ -103,8 +105,26 @@ public class ScraperService {
             throw new RuntimeException(e);
         }
     }
+//    public List<ScrapedAnnouncement> checkMTO(LocalDate from, LocalDate to) {
+//        byte[] doc1 = null;
+//        try {
+//            doc1 = Files.readAllBytes(Path.of("src/test/resources/fixtures/mto-2026-05-11/doc1.pdf"));
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        byte[] doc2 = null;
+//        try {
+//            doc2 = Files.readAllBytes(Path.of("src/test/resources/fixtures/mto-2026-05-11/doc2.pdf"));
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return List.of(new ScrapedAnnouncement(
+//                "Announcement of the Plan to Conduct a Mandatory Tender Offer. [MAPI ]",
+//                List.of(doc1, doc2)
+//        ));
+//    }
 
-    public String getTickerLastPrice(String ticker) {
+        public String getTickerLastPrice(String ticker) {
         String results = "";
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.firefox().launch();
@@ -119,8 +139,7 @@ public class ScraperService {
             //open datepicker
             Locator dateInput = page.locator(".mx-datepicker input.mx-input");
             dateInput.click();
-            String hardcodedDate = "2026-05-08";
-            dateInput.pressSequentially(hardcodedDate);
+            dateInput.pressSequentially(LocalDate.now().toString());
             page.keyboard().press("Enter");
 
 
@@ -140,5 +159,8 @@ public class ScraperService {
         }
         return results;
     }
+//    public String getTickerLastPrice(String ticker) {
+//        return "0";
+//    }
 }
 
